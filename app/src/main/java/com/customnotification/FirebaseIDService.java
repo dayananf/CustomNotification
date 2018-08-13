@@ -1,0 +1,48 @@
+package com.customnotification;
+
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
+
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.FirebaseInstanceIdService;
+
+public class FirebaseIDService extends FirebaseInstanceIdService {
+    private static final String TAG = "FirebaseIDService";
+
+    @Override
+    public void onTokenRefresh() {
+        super.onTokenRefresh();
+
+        String refreshedToken = FirebaseInstanceId.getInstance().getToken();
+        Log.d(TAG, "Refreshed token: " + refreshedToken);
+
+
+        // Saving reg id to shared preferences
+        storeRegIdInPref(refreshedToken);
+
+        // sending reg id to your server
+        sendRegistrationToServer(refreshedToken);
+
+        // Notify UI that registration has completed, so the progress indicator can be hidden.
+        Intent registrationComplete = new Intent(InterfaceConsts.REGISTRATION_COMPLETE);
+        registrationComplete.putExtra("token", refreshedToken);
+
+        LocalBroadcastManager.getInstance(this).sendBroadcast(registrationComplete);
+
+    }
+
+    private void sendRegistrationToServer(String refreshedToken) {
+
+    }
+
+    private void storeRegIdInPref(String refreshedToken) {
+
+        SharedPreferences pref = getApplicationContext().getSharedPreferences(InterfaceConsts.SHARED_PREF, 0);
+        SharedPreferences.Editor editor = pref.edit();
+        editor.putString("regId", refreshedToken);
+        editor.commit();
+
+    }
+}
